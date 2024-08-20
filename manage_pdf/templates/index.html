@@ -1,0 +1,82 @@
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title></title>
+    <link rel="stylesheet" href="/static/css/style.css">
+
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="logo">
+            <div class="logo">S.G</div>
+        </div>
+        <ul class="nav-links">
+            <li class="dropdown">
+                <a href="#" class="dropbtn">ALL PDF TOOLS v</a>
+                <div class="dropdown-content">
+                    <a href="#">Split PDF</a>
+                    <a href="#">Merge PDF</a>
+                    <a href="#">Compress PDF</a>
+                </div>
+            </li>
+            <li><a href="#">GUIDES</a></li>
+            <li><a href="#about">ABOUT US</a></li>
+            <li><a href="#">CONTACT</a></li>
+        </ul>
+    </nav>
+
+    <!-- Header Section -->
+    <header class="header-section">
+        <h1 class="main-heading">Every tool you need to work with PDFs in one place</h1>
+        <p class="sub-heading">Every tool you need to use PDFs, at your fingertips. All are 100% FREE and easy to use! Merge, split, compress, convert, rotate, unlock and watermark PDFs with just a few clicks.</p>
+        
+        <div class="container">
+            <div class="card">
+                <div class="icon">🔀</div>
+                <h3>Split PDF</h3>
+                <p>Separate one page or a whole set for easy conversion into independent PDF files.</p>
+                <button class="button">
+                    <a href="{% url "manage_pdf:upload_pdf" %}">Click here!</a>
+                </button>
+            </div>
+            <div class="card">
+                <div class="icon">🔄</div>
+                <h3>Merge PDF</h3>
+                <p> Combine PDFs in the order you want with the easiest PDF merger available.</p>
+                <button class="button">
+                    <a href="{% url "manage_pdf:upload_pdfs" %}">Click here!</a>
+                </button>
+            </div>
+            <div class="card">
+                <div class="icon">📉</div>
+                <h3>Compress PDF</h3>
+                <p>Reduce file size while optimizing for maximal PDF quality.</p>
+                <button class="button">
+                    <a href="#">Click here!</a>
+                </button>
+            </div>
+            <div class="card">
+                <div class="icon">📝</div>
+                <h3>PDF to Word</h3>
+                <p>Easily convert your PDF files into easy to edit DOC and DOCX documents.</p>
+                <button class="button">
+                    <a href="#">Click here!</a>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <div class="line"></div>
+
+    <!-- About Section -->
+    <section class="about-section" id="about">
+        <h2>About Us</h2>
+        <p>Welcome to our PDF tools website, your one-stop destination for all your PDF needs. We offer a wide range of tools that allow you to easily merge, split, compress, convert, rotate, unlock, and watermark PDFs. Our goal is to make PDF management simple and accessible to everyone, with 100% free and easy-to-use tools. Whether you’re a student, professional, or just someone looking to manage their documents efficiently, we’re here to help.</p>
+    </section>
+
+</body>
+</html>
+

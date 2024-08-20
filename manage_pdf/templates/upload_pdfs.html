@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload PDF Files</title>
+</head>
+<body>
+    <h2>Upload PDF Files</h2>
+    
+    <!-- Button to select files -->
+    <input type="file" id="pdfInput" accept="application/pdf" multiple>
+
+    <!-- Display selected files -->
+    <h3>Selected Files:</h3>
+    <ul id="fileList"></ul>
+
+    <!-- Button to upload all files -->
+    <form id="uploadForm" action="{% url 'manage_pdf:upload_pdfs' %}" method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <button type="submit">Upload and Merge Files</button>
+    </form>
+
+    <script>
+        const pdfInput = document.getElementById('pdfInput');
+        const fileList = document.getElementById('fileList');
+        const uploadForm = document.getElementById('uploadForm');
+
+        let filesStack = [];
+
+        // Automatically add files to the stack when selected
+        pdfInput.addEventListener('change', function() {
+            if (pdfInput.files.length > 0) {
+                for (let i = 0; i < pdfInput.files.length; i++) {
+                    filesStack.push(pdfInput.files[i]);
+                    let li = document.createElement('li');
+                    li.textContent = pdfInput.files[i].name;
+                    fileList.appendChild(li);
+                }
+                pdfInput.value = ''; // Clear the input after adding files to stack
+            }
+        });
+
+        uploadForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            let formData = new FormData();
+
+            // Add all files from the stack to the FormData object
+            for (let i = 0; i < filesStack.length; i++) {
+                formData.append('pdfs', filesStack[i]);
+            }
+
+            // Send the form data with all files Fetch
+            fetch(uploadForm.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                }
+            }).then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    window.location.href = data.download_url; // Redirect to the download page
+                } else {
+                    alert('Upload and merge failed.');
+                }
+            }).catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred during upload.');
+            });
+        });
+    </script>
+</body>
+</html>

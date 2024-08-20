@@ -1,0 +1,226 @@
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Viewer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200vh;
+            margin: 0;
+            background-color: #f7f7f7;
+        }
+
+        .pdf-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        
+        #pdf-viewer {
+            width: 900px;
+            height: 1000px;
+            border: 1px solid #ccc;
+            overflow: auto;
+            background-color: white;
+            margin-top: 100px;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        #pdf-viewer.active{
+            border: 2px solid blue;
+        }
+
+        .controls {
+            display: flex;
+            align-items: center;
+        }
+
+        .controls button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px;
+            margin: 0 10px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        .controls button:hover {
+            background-color: #0056b3;
+        }
+
+
+    </style>
+</head>
+<body>
+    <div class="pdf-container" >
+        <div class="controls">
+            <button id="prev-page">Previous</button>
+            <span>Page: <span id="page-num"></span> / <span id="page-count"></span></span>
+            <button id="next-page">Next</button>
+        </div>
+            
+        <button id="add_page">ADD PAGE</button>
+        <div id="display_current_pg"></div>
+        <button id="done1" onclick="sendPageToBackend()">DONE</button>
+
+        <div id="pdf-viewer"></div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.9.359/pdf.min.js"></script>
+    <script>
+        // URL of the PDF to be rendered
+        const url = '{{ file_url }}';
+        let pdfDoc = null,
+            pageNum = 1,
+            pageRendering = false,
+            pageNumPending = null,
+            scale = 1.5,
+            canvas = document.createElement('canvas'),
+            ctx = canvas.getContext('2d');
+
+        document.getElementById('pdf-viewer').appendChild(canvas);
+
+        //==================
+        let currentVisiblePage = 1;
+        let pages=[];
+        //sendPageToBackend(pages);
+        //=====================
+        // Load the PDF
+        pdfjsLib.getDocument(url).promise.then((pdfDoc_) => {
+            pdfDoc = pdfDoc_;
+            document.getElementById('page-count').textContent = pdfDoc.numPages;
+            renderPage(pageNum);
+        });
+
+        // Render the page
+        function renderPage(num) {
+            pageRendering = true;
+            pdfDoc.getPage(num).then((page) => {
+                const viewport = page.getViewport({ scale: scale });
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+
+                const renderContext = {
+                    canvasContext: ctx,
+                    viewport: viewport
+                };
+                const renderTask = page.render(renderContext);
+
+                renderTask.promise.then(() => {
+                    pageRendering = false;
+
+                    //==============================
+                    currentVisiblePage = num;
+                    //========================
+                    if (pageNumPending !== null) {
+                        renderPage(pageNumPending);
+                        pageNumPending = null;
+                    }
+                });
+
+                document.getElementById('page-num').textContent = num;
+            });
+        }
+
+        
+
+
+        // Queue render page if another is already rendering
+        function queueRenderPage(num) {
+            if (pageRendering) {
+                pageNumPending = num;
+            } else {
+                renderPage(num);
+            }
+        }
+
+        // Go to previous page
+        document.getElementById('prev-page').addEventListener('click', () => {
+            if (pageNum <= 1) {
+                return;
+            }
+            pageNum--;
+            queueRenderPage(pageNum);
+        });
+
+        // Go to next page
+        document.getElementById('next-page').addEventListener('click', () => {
+            if (pageNum >= pdfDoc.numPages) {
+                return;
+            }
+            pageNum++;
+            queueRenderPage(pageNum);
+        });
+
+
+        document.getElementById('add_page').addEventListener('click', function(){
+            pages.push(currentVisiblePage);
+            document.getElementById('display_current_pg').innerHTML = pages.join(',');
+        });
+
+
+        const addx = document.getElementById('pdf-viewer');
+
+        addx.addEventListener('click', function() {
+            this.classList.toggle('active');
+        });
+
+
+
+        //-------------------------backend---------------------------
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    
+        function sendPageToBackend(pgno){
+            fetch('split_pdf', {
+                method: "POST",
+                headers: {
+                    'Content-Type': "application/json",
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({'pgno': pgno}),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    window.location.href = '/pdf_download/';
+                } else {
+                    console.error('Error:', data.message);
+                }
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+        }
+    
+        // Event listener for the DONE button
+        document.getElementById('done1').addEventListener('click', function() {
+            sendPageToBackend(pages);
+        });
+
+
+
+    </script>
+</body>
+</html>
